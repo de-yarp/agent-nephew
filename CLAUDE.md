@@ -20,13 +20,13 @@ Update this section after each completed prompt.
 | [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ✅ complete |
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ✅ complete |
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ✅ complete |
-| [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ⬜ not started |
+| [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ✅ complete |
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ⬜ not started |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [6]
-**Last completed:** [5]
+**Current prompt:** [7]
+**Last completed:** [6]
 **Last updated by:** Claude
 
 ---
@@ -317,3 +317,15 @@ python -c "import agent" # package must import cleanly
 - [x] Check 6: assembled block3 prompt — all 5 sections present (## Task, ## Files provided, ## File contents, ## Constraints, ## Expected output)
 - [x] Check 7: planning phase live call — 1 step produced, 8 messages in planning_messages, questionary auto-approved
 - [x] Check 8: token accumulation — orchestrator recorded 6 calls, input_tokens > 0 after planning phase
+
+---
+
+## Verification — Prompt [6]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — `assemble_step_result`, `execute_step` import cleanly
+- [x] Check 3: assemble_step_result — all status branches correct (success/partial/error)
+- [x] Check 4: assemble_step_result — empty keys omitted; bare `{'status': 'success'}` returned
+- [x] Check 5: call_llm streaming — non-streaming callers unaffected; all 6 fields present, finish_reason=stop
+- [x] Check 6: call_llm streaming — tokens streamed correctly; streamed tokens match accumulated content (1 token, content='hello')
+- [x] Check 7: execute_step dev-mode auto-approve — real Qwen3 call; status=success, files_written=['/tmp/greet_test.py'], worker calls >= 1
+- [x] Check 8: denial recorded correctly — deny_all callback; status=partial, denied={'write_file': ['/tmp/denial_test.py']}
