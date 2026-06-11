@@ -19,14 +19,14 @@ Update this section after each completed prompt.
 | [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ✅ complete |
 | [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ✅ complete |
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ✅ complete |
-| [5] | 4   | Block 2 Orchestrator: planning + execution loop | ⬜ not started |
+| [5] | 4   | Block 2 Orchestrator: planning + execution loop | ✅ complete |
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ⬜ not started |
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ⬜ not started |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [5]
-**Last completed:** [4]
+**Current prompt:** [6]
+**Last completed:** [5]
 **Last updated by:** Claude
 
 ---
@@ -305,3 +305,15 @@ python -c "import agent" # package must import cleanly
 - [x] Check 6: call2 SIMPLE path end-to-end — all 5 sections present in assembled_prompt
 - [x] Check 7: call2 COMPLEX path end-to-end — file_list (5 files), context_contents, diary_sections, user_request all present
 - [x] Check 8: token accumulation active — 2 router calls recorded, input_tokens > 0
+
+---
+
+## Verification — Prompt [5]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — `orchestrate`, `run_planning_phase`, `run_execution_phase`, `execute_step` all import cleanly
+- [x] Check 3: llm.py tool_calls extension — `tool_calls=None`, `raw_assistant_message` field present for non-tool response
+- [x] Check 4: block3 stub — returns `{'status': 'success', 'files_written': [], 'commands_run': []}`
+- [x] Check 5: step result evaluation — all 4 branches correct (proceed, proceed_with_denials, halt_errors, halt_error)
+- [x] Check 6: assembled block3 prompt — all 5 sections present (## Task, ## Files provided, ## File contents, ## Constraints, ## Expected output)
+- [x] Check 7: planning phase live call — 1 step produced, 8 messages in planning_messages, questionary auto-approved
+- [x] Check 8: token accumulation — orchestrator recorded 6 calls, input_tokens > 0 after planning phase
