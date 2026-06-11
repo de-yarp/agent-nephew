@@ -4,7 +4,7 @@ import json as _json
 import time
 from typing import TYPE_CHECKING
 
-from agent.llm import call_llm
+import agent.llm as _llm_module
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -54,19 +54,20 @@ def traced_call_llm(
     block = kwargs.pop("block", _ROLE_TO_BLOCK.get(role, "unknown"))
     user_request = kwargs.pop("user_request", None)
 
-    if conn is None:
-        return call_llm(role, messages, config, **kwargs)
     model = config["models"][role]["model"]
-
     if role in session.model_overrides:
         model = session.model_overrides[role]
+        kwargs["model"] = model
+
+    if conn is None:
+        return _llm_module.call_llm(role, messages, config, **kwargs)
 
     t_start = time.monotonic()
     error = None
     result = None
 
     try:
-        result = call_llm(role, messages, config, **kwargs)
+        result = _llm_module.call_llm(role, messages, config, **kwargs)
     except Exception as e:
         error = str(e)
         raise

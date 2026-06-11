@@ -11,6 +11,7 @@ from agent.tracing import traced_call_llm
 from agent.tools.dispatcher import execute_tool
 from agent.tools.functions import read_file
 from agent.tools.schemas import BLOCK2_SCHEMAS
+from agent.ui.output import spinner, show_step_header, show_large_plan_warning
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -205,7 +206,7 @@ def _display_plan(steps: list, config: dict) -> None:
     for i, step in enumerate(steps, 1):
         print(f"  {i}. {step['title']} — {step['description']}")
     if len(steps) > config["warnings"]["large_plan_steps"]:
-        print(f"\n⚠ Large plan ({len(steps)} steps) — consider narrowing the task scope.")
+        show_large_plan_warning(len(steps), config["warnings"]["large_plan_steps"])
 
 
 def run_planning_phase(
@@ -230,9 +231,10 @@ def run_planning_phase(
     )
     planning_messages.append({"role": "user", "content": analysis_user_msg})
 
-    analysis_content, planning_messages = _run_analysis_with_tools(
-        planning_messages, config, session, project_root, conn=conn
-    )
+    with spinner("Analysing..."):
+        analysis_content, planning_messages = _run_analysis_with_tools(
+            planning_messages, config, session, project_root, conn=conn
+        )
     planning_messages.append({"role": "assistant", "content": analysis_content})
 
     # Step 2 — Decomposition call (no tools)
@@ -248,7 +250,8 @@ def run_planning_phase(
     )
     planning_messages.append({"role": "user", "content": decomp_user_msg})
 
-    decomp_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
+    with spinner("Planning..."):
+        decomp_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
     session.accumulate_tokens("orchestrator", decomp_result["input_tokens"], decomp_result["output_tokens"])
     planning_messages.append({"role": "assistant", "content": decomp_result["content"]})
 
@@ -282,7 +285,8 @@ def run_planning_phase(
                 ),
             })
 
-            mod_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
+            with spinner("Revising plan..."):
+                mod_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
             session.accumulate_tokens("orchestrator", mod_result["input_tokens"], mod_result["output_tokens"])
             planning_messages.append({"role": "assistant", "content": mod_result["content"]})
 
@@ -376,6 +380,7 @@ def run_execution_phase(
     config: dict,
     project_root: Path,
     conn=None,
+    approval_callback=None,
 ) -> list:
     from agent.blocks.block3 import execute_step
 
@@ -383,7 +388,7 @@ def run_execution_phase(
     all_denied: list = []
 
     for i, step in enumerate(steps, 1):
-        print(f"\n─── Step {i} / {len(steps)} ───")
+        show_step_header(i, len(steps))
 
         previous_result = all_results[-1] if all_results else None
         step_user_msg = _build_step_execution_message(
@@ -396,14 +401,15 @@ def run_execution_phase(
 
         step_messages = list(planning_messages) + [{"role": "user", "content": step_user_msg}]
 
-        result = traced_call_llm(role="orchestrator", messages=step_messages, session=session, conn=conn, config=config)
+        with spinner("Building step instruction..."):
+            result = traced_call_llm(role="orchestrator", messages=step_messages, session=session, conn=conn, config=config)
         session.accumulate_tokens("orchestrator", result["input_tokens"], result["output_tokens"])
 
         instruction = _parse_instruction_json(result["content"], step_messages, config, session, conn=conn)
 
         assembled_prompt = _assemble_block3_prompt(instruction, project_root, config, all_denied)
 
-        step_result = execute_step(assembled_prompt, session, config, project_root, conn=conn)
+        step_result = execute_step(assembled_prompt, session, config, project_root, conn=conn, approval_callback=approval_callback)
         all_results.append(step_result)
 
         evaluation = _evaluate_step_result(step_result)
@@ -443,6 +449,7 @@ def orchestrate(
     config: dict,
     project_root: Path,
     conn=None,
+    approval_callback=None,
 ) -> list:
     extra_docs = _scan_documentation_manifest(context_contents, project_root, config)
     if extra_docs:
@@ -472,4 +479,5 @@ def orchestrate(
         config=config,
         project_root=project_root,
         conn=conn,
+        approval_callback=approval_callback,
     )
