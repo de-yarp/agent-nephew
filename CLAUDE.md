@@ -24,9 +24,10 @@ Update this section after each completed prompt.
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ✅ complete |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ✅ complete |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ✅ complete |
+| [10] | — | Documentation — README and 6 docs files | ✅ complete |
 
 **Current prompt:** — complete —
-**Last completed:** [9]
+**Last completed:** [10]
 **Last updated by:** Claude
 
 ---
@@ -369,3 +370,14 @@ python -c "import agent" # package must import cleanly
 - [x] Check 8: approval callback returns correct values — tier1 auto-approve, tier2 allow/skip/deny-with-feedback all correct
 - [x] Check 9: block2 and block3 signatures accept new params — approval_callback in orchestrate/run_execution_phase/execute_step, stream_handler in execute_step
 - [ ] Check 10: nephew runs — full startup smoke test (manual)
+
+---
+
+## Verification — Prompt [10]
+- [x] Check 1: all 7 files created — README.md (4518 bytes), docs/architecture.md (6916 bytes), docs/configuration.md (6815 bytes), docs/tools.md (6580 bytes), docs/session-lifecycle.md (8211 bytes), docs/tracing.md (4563 bytes), docs/development.md (4330 bytes)
+- [x] Check 2: no .py files modified — confirmed via `git diff --name-only HEAD | grep '\.py$'`
+- [x] Check 3: README contains correct install command — `--no-cache` and `uv tool install` both present
+- [x] Check 4: configuration.md documents all .agent.json fields — all 8 fields verified (max_tokens_routing, max_tokens_ceiling, sliding_window, fetch_page_max_chars, large_file_head_lines, cost_per_1k_input, web_search_max_results, large_plan_steps)
+- [x] Check 5: architecture.md contains the block diagram — Block 1/2/3, SIMPLE, COMPLEX all present
+- [x] Check 6: session-lifecycle.md lists all 12 diary sections — all 11 required section strings verified (State going in, Task, Decisions, Alternatives rejected, Files changed, What worked, Mistakes, Open questions, Next session, Metrics, Notes)
+- [x] Check 7: development.md documents --no-cache install requirement — present
