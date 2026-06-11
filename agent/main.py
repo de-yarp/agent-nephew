@@ -28,3 +28,13 @@ def main() -> None:
     print(f"Project root: {project_root}")
     print(f"Tracing: {'enabled' if conn else 'disabled'}")
     print("REPL not yet implemented — coming in [9].")
+
+    # Temporary test call — removed in [9]
+    from agent.blocks.block1 import route_and_dispatch
+    result = route_and_dispatch(
+        user_request="test request",
+        session=session,
+        config=config,
+        project_root=project_root
+    )
+    print(f"Routing test: {result['routing']}")

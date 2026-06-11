@@ -18,15 +18,15 @@ Update this section after each completed prompt.
 | [1] | 1.1 | Package scaffolding, config, .env, root discovery | ✅ complete |
 | [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ✅ complete |
 | [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ✅ complete |
-| [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ⬜ not started |
+| [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ✅ complete |
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ⬜ not started |
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ⬜ not started |
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ⬜ not started |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [4]
-**Last completed:** [3]
+**Current prompt:** [5]
+**Last completed:** [4]
 **Last updated by:** Claude
 
 ---
@@ -293,3 +293,15 @@ python -c "import agent" # package must import cleanly
 - [x] Check 6: write_file creates dirs — nested path created and content verified
 - [x] Check 7: dispatcher tier enforcement — block3 restriction, tier2 no callback, tier1 auto-execute all correct
 - [x] Check 8: schemas structure — 7 schemas, BLOCK2/BLOCK3 subsets correct
+
+---
+
+## Verification — Prompt [4]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — `route_and_dispatch` imports cleanly
+- [x] Check 3: max_tokens_routing config fix — value is 100
+- [x] Check 4: call1 routing — SIMPLE decision — returned SIMPLE for "fix the typo in the README"
+- [x] Check 5: call1 routing — COMPLEX decision — returned COMPLEX for auth system request
+- [x] Check 6: call2 SIMPLE path end-to-end — all 5 sections present in assembled_prompt
+- [x] Check 7: call2 COMPLEX path end-to-end — file_list (5 files), context_contents, diary_sections, user_request all present
+- [x] Check 8: token accumulation active — 2 router calls recorded, input_tokens > 0
