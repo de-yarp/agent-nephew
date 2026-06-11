@@ -23,6 +23,9 @@ def main() -> None:
     if not args.no_trace and config.get("tracing", {}).get("enabled", True):
         from agent.db import connect_postgres
         conn = connect_postgres(config)
+    if conn is not None:
+        from agent.tracing import create_traces_table
+        create_traces_table(conn)
 
     print(f"Agent initialised. Session: {session.session_id}")
     print(f"Project root: {project_root}")

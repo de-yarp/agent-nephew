@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import questionary
 
-from agent.llm import call_llm
+from agent.tracing import traced_call_llm
 from agent.tools.dispatcher import execute_tool
 from agent.tools.functions import read_file
 from agent.tools.schemas import BLOCK2_SCHEMAS
@@ -59,6 +59,7 @@ def _parse_steps_json(
     messages: list,
     config: dict,
     session: "Session",
+    conn=None,
 ) -> list:
     """
     Parses {"steps": [...]} from content. messages should already contain the
@@ -81,7 +82,7 @@ def _parse_steps_json(
             ),
         }
     ]
-    retry_result = call_llm(role="orchestrator", messages=retry_messages, config=config)
+    retry_result = traced_call_llm(role="orchestrator", messages=retry_messages, session=session, conn=conn, config=config)
     session.accumulate_tokens("orchestrator", retry_result["input_tokens"], retry_result["output_tokens"])
     cleaned2 = _strip_fences(retry_result["content"])
     try:
@@ -97,6 +98,7 @@ def _parse_instruction_json(
     messages: list,
     config: dict,
     session: "Session",
+    conn=None,
 ) -> dict:
     """
     Parses block2_step_instruction dict from content. messages should NOT include
@@ -120,7 +122,7 @@ def _parse_instruction_json(
             ),
         },
     ]
-    retry_result = call_llm(role="orchestrator", messages=retry_messages, config=config)
+    retry_result = traced_call_llm(role="orchestrator", messages=retry_messages, session=session, conn=conn, config=config)
     session.accumulate_tokens("orchestrator", retry_result["input_tokens"], retry_result["output_tokens"])
     cleaned2 = _strip_fences(retry_result["content"])
     try:
@@ -164,11 +166,14 @@ def _run_analysis_with_tools(
     config: dict,
     session: "Session",
     project_root: Path,
+    conn=None,
 ) -> tuple[str, list]:
     while True:
-        result = call_llm(
+        result = traced_call_llm(
             role="orchestrator",
             messages=messages,
+            session=session,
+            conn=conn,
             config=config,
             tools=BLOCK2_SCHEMAS,
         )
@@ -211,6 +216,7 @@ def run_planning_phase(
     session: "Session",
     config: dict,
     project_root: Path,
+    conn=None,
 ) -> tuple[list, list] | None:
     system_msg = _build_system_message(context_contents, diary_sections)
     planning_messages: list = [{"role": "system", "content": system_msg}]
@@ -225,7 +231,7 @@ def run_planning_phase(
     planning_messages.append({"role": "user", "content": analysis_user_msg})
 
     analysis_content, planning_messages = _run_analysis_with_tools(
-        planning_messages, config, session, project_root
+        planning_messages, config, session, project_root, conn=conn
     )
     planning_messages.append({"role": "assistant", "content": analysis_content})
 
@@ -242,11 +248,11 @@ def run_planning_phase(
     )
     planning_messages.append({"role": "user", "content": decomp_user_msg})
 
-    decomp_result = call_llm(role="orchestrator", messages=planning_messages, config=config)
+    decomp_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
     session.accumulate_tokens("orchestrator", decomp_result["input_tokens"], decomp_result["output_tokens"])
     planning_messages.append({"role": "assistant", "content": decomp_result["content"]})
 
-    steps = _parse_steps_json(decomp_result["content"], planning_messages, config, session)
+    steps = _parse_steps_json(decomp_result["content"], planning_messages, config, session, conn=conn)
 
     # Step 3 — Plan approval loop
     while True:
@@ -276,11 +282,11 @@ def run_planning_phase(
                 ),
             })
 
-            mod_result = call_llm(role="orchestrator", messages=planning_messages, config=config)
+            mod_result = traced_call_llm(role="orchestrator", messages=planning_messages, session=session, conn=conn, config=config)
             session.accumulate_tokens("orchestrator", mod_result["input_tokens"], mod_result["output_tokens"])
             planning_messages.append({"role": "assistant", "content": mod_result["content"]})
 
-            steps = _parse_steps_json(mod_result["content"], planning_messages, config, session)
+            steps = _parse_steps_json(mod_result["content"], planning_messages, config, session, conn=conn)
 
 
 def _build_step_execution_message(
@@ -369,6 +375,7 @@ def run_execution_phase(
     session: "Session",
     config: dict,
     project_root: Path,
+    conn=None,
 ) -> list:
     from agent.blocks.block3 import execute_step
 
@@ -389,14 +396,14 @@ def run_execution_phase(
 
         step_messages = list(planning_messages) + [{"role": "user", "content": step_user_msg}]
 
-        result = call_llm(role="orchestrator", messages=step_messages, config=config)
+        result = traced_call_llm(role="orchestrator", messages=step_messages, session=session, conn=conn, config=config)
         session.accumulate_tokens("orchestrator", result["input_tokens"], result["output_tokens"])
 
-        instruction = _parse_instruction_json(result["content"], step_messages, config, session)
+        instruction = _parse_instruction_json(result["content"], step_messages, config, session, conn=conn)
 
         assembled_prompt = _assemble_block3_prompt(instruction, project_root, config, all_denied)
 
-        step_result = execute_step(assembled_prompt, session, config, project_root)
+        step_result = execute_step(assembled_prompt, session, config, project_root, conn=conn)
         all_results.append(step_result)
 
         evaluation = _evaluate_step_result(step_result)
@@ -435,6 +442,7 @@ def orchestrate(
     session: "Session",
     config: dict,
     project_root: Path,
+    conn=None,
 ) -> list:
     extra_docs = _scan_documentation_manifest(context_contents, project_root, config)
     if extra_docs:
@@ -448,6 +456,7 @@ def orchestrate(
         session=session,
         config=config,
         project_root=project_root,
+        conn=conn,
     )
 
     if planning_result is None:
@@ -462,4 +471,5 @@ def orchestrate(
         session=session,
         config=config,
         project_root=project_root,
+        conn=conn,
     )

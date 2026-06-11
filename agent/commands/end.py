@@ -3,8 +3,7 @@ import re
 from datetime import date
 from pathlib import Path
 
-from agent.tracing import get_session_trace_summary
-from agent.llm import call_llm
+from agent.tracing import get_session_trace_summary, traced_call_llm
 
 REQUIRED_HEADERS = [
     "## State going in",
@@ -82,7 +81,7 @@ def handle_end(session, config: dict, project_root: Path, conn, repo) -> None:
             {"role": "user", "content": user_msg},
         ]
 
-        result = call_llm(role="router", messages=messages, config=config, max_tokens=2000)
+        result = traced_call_llm(role="router", messages=messages, session=session, conn=conn, config=config, max_tokens=2000, block="lifecycle")
         session.accumulate_tokens("router", result["input_tokens"], result["output_tokens"])
         diary_entry = result["content"]
 
@@ -98,7 +97,7 @@ def handle_end(session, config: dict, project_root: Path, conn, repo) -> None:
                     ),
                 },
             ]
-            retry_result = call_llm(role="router", messages=retry_messages, config=config, max_tokens=2000)
+            retry_result = traced_call_llm(role="router", messages=retry_messages, session=session, conn=conn, config=config, max_tokens=2000, block="lifecycle")
             session.accumulate_tokens("router", retry_result["input_tokens"], retry_result["output_tokens"])
             diary_entry = retry_result["content"]
 
@@ -113,7 +112,7 @@ def handle_end(session, config: dict, project_root: Path, conn, repo) -> None:
 
     # Step 6 — git commit if writes occurred
     if repo is not None and repo.is_dirty(untracked_files=True):
-        commit_msg_result = call_llm(
+        commit_msg_result = traced_call_llm(
             role="router",
             messages=[
                 {
@@ -128,8 +127,11 @@ def handle_end(session, config: dict, project_root: Path, conn, repo) -> None:
                 },
                 {"role": "user", "content": f"Session summary:\n{json.dumps(summary, indent=2)}"},
             ],
+            session=session,
+            conn=conn,
             config=config,
             max_tokens=100,
+            block="lifecycle",
         )
         session.accumulate_tokens("router", commit_msg_result["input_tokens"], commit_msg_result["output_tokens"])
         commit_message = commit_msg_result["content"].strip()

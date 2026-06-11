@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agent.llm import call_llm
+from agent.tracing import traced_call_llm
 from agent.result import assemble_step_result
 from agent.session import Session
 from agent.tools.dispatcher import execute_tool
@@ -66,6 +66,7 @@ def execute_step(
     config: dict,
     project_root: Path,
     approval_callback: callable = None,
+    conn=None,
 ) -> dict:
     if approval_callback is None:
         def approval_callback(tier, tool_name, args):
@@ -102,9 +103,11 @@ def execute_step(
         def token_printer(token: str):
             print(token, end="", flush=True)
 
-        result = call_llm(
+        result = traced_call_llm(
             role="worker",
             messages=messages,
+            session=session,
+            conn=conn,
             config=config,
             stream_handler=token_printer,
             tools=BLOCK3_SCHEMAS,
