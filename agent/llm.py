@@ -6,6 +6,7 @@ from openai import OpenAI
 
 def call_llm(role: str, messages: list, config: dict, stream_handler=None, **kwargs) -> dict:
     model_cfg = config["models"][role]
+    model = kwargs.pop("model", model_cfg["model"])  # allow override via kwargs
     provider = model_cfg["provider"]
 
     if provider == "deepseek":
@@ -33,7 +34,7 @@ def call_llm(role: str, messages: list, config: dict, stream_handler=None, **kwa
 
     if stream_handler is not None:
         stream = client.chat.completions.create(
-            model=model_cfg["model"],
+            model=model,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
@@ -129,7 +130,7 @@ def call_llm(role: str, messages: list, config: dict, stream_handler=None, **kwa
 
     # Non-streaming path — unchanged
     response = client.chat.completions.create(
-        model=model_cfg["model"],
+        model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,

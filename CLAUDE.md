@@ -23,10 +23,10 @@ Update this section after each completed prompt.
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ✅ complete |
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ✅ complete |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ✅ complete |
-| [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
+| [9] | 8   | Rich CLI & UX + full main loop assembly | ✅ complete |
 
-**Current prompt:** [9]
-**Last completed:** [8]
+**Current prompt:** — complete —
+**Last completed:** [9]
 **Last updated by:** Claude
 
 ---
@@ -355,3 +355,17 @@ python -c "import agent" # package must import cleanly
 - [x] Check 6: traced_call_llm records to traces — 1 row; role=router, tokens=10/21, block=block1
 - [x] Check 7: get_session_trace_summary returns correct structure — total_calls=1, total_input_tokens>0, calls_by_role has router/orchestrator/worker
 - [x] Check 8: get_session_trace_summary returns {} when conn=None
+
+---
+
+## Verification — Prompt [9]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: all ui imports — all symbols from output.py, header.py, prompts.py import cleanly
+- [x] Check 3: model override fix — traced_call_llm passes overridden model to call_llm via kwargs; tracing.py now uses module-attribute reference so mock intercepts correctly
+- [x] Check 4: startup header renders — ASCII art, model names, branch info, Rule all display without error (UTF-8 console wrapper applied for Windows)
+- [x] Check 5: spinner context manager — completes without error
+- [x] Check 6: completion summary format — SIMPLE (no steps) and COMPLEX (3 steps) both correct
+- [x] Check 7: show_diff works — diff against existing file and new file both correct
+- [x] Check 8: approval callback returns correct values — tier1 auto-approve, tier2 allow/skip/deny-with-feedback all correct
+- [x] Check 9: block2 and block3 signatures accept new params — approval_callback in orchestrate/run_execution_phase/execute_step, stream_handler in execute_step
+- [ ] Check 10: nephew runs — full startup smoke test (manual)

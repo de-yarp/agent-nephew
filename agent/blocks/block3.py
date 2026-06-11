@@ -67,6 +67,7 @@ def execute_step(
     project_root: Path,
     approval_callback: callable = None,
     conn=None,
+    stream_handler=None,
 ) -> dict:
     if approval_callback is None:
         def approval_callback(tier, tool_name, args):
@@ -97,11 +98,15 @@ def execute_step(
             {"role": "user", "content": user_message},
         ]
 
-        if correction_round > 0:
-            print(f"\n[Regenerating... round {correction_round}]")
+        _summary_before = session.get_summary(config)
+        _tokens_before = _summary_before["total_input_tokens"] + _summary_before["total_output_tokens"]
+        _cost_before = _summary_before["total_cost"]
 
-        def token_printer(token: str):
-            print(token, end="", flush=True)
+        if stream_handler is not None:
+            _stream_handler = stream_handler
+        else:
+            def _stream_handler(token: str) -> None:
+                print(token, end="", flush=True)
 
         result = traced_call_llm(
             role="worker",
@@ -109,17 +114,28 @@ def execute_step(
             session=session,
             conn=conn,
             config=config,
-            stream_handler=token_printer,
+            stream_handler=_stream_handler,
             tools=BLOCK3_SCHEMAS,
         )
         session.accumulate_tokens("worker", result["input_tokens"], result["output_tokens"])
+
+        if correction_round > 0:
+            from agent.ui.prompts import show_correction_cost
+            _summary_after = session.get_summary(config)
+            _tokens_delta = (
+                _summary_after["total_input_tokens"] + _summary_after["total_output_tokens"]
+            ) - _tokens_before
+            _cost_delta = _summary_after["total_cost"] - _cost_before
+            show_correction_cost(correction_round, _tokens_delta, _cost_delta)
+
         print()
 
         last_text_output = result["content"]
         pending_correction_note = None
 
         if result["finish_reason"] == "interrupted":
-            print("\n⚠ Generation stopped. Partial output saved to context.")
+            from agent.ui.output import show_interrupt_message
+            show_interrupt_message()
             return assemble_step_result(approved_writes, approved_commands, denied, errors)
 
         if result["finish_reason"] == "length":
