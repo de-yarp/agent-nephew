@@ -21,12 +21,12 @@ Update this section after each completed prompt.
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ✅ complete |
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ✅ complete |
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ✅ complete |
-| [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ⬜ not started |
+| [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ✅ complete |
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [7]
-**Last completed:** [6]
+**Current prompt:** [8]
+**Last completed:** [7]
 **Last updated by:** Claude
 
 ---
@@ -329,3 +329,17 @@ python -c "import agent" # package must import cleanly
 - [x] Check 6: call_llm streaming — tokens streamed correctly; streamed tokens match accumulated content (1 token, content='hello')
 - [x] Check 7: execute_step dev-mode auto-approve — real Qwen3 call; status=success, files_written=['/tmp/greet_test.py'], worker calls >= 1
 - [x] Check 8: denial recorded correctly — deny_all callback; status=partial, denied={'write_file': ['/tmp/denial_test.py']}
+
+---
+
+## Verification — Prompt [7]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — all 8 symbols import cleanly
+- [x] Check 3: context files reading — absent flag returned when docs/context/ missing; file contents returned when present
+- [x] Check 4: diary section extraction — Next session, Open questions, Decisions extracted; other sections excluded
+- [x] Check 5: handle_init creates correct structure — CAPITAL.md (all 6 sections), docs/lowercase/, docs/diary/, .agentignore
+- [x] Check 6: handle_init skips existing files with warning; --force overwrites correctly
+- [x] Check 7: handle_history output — no-calls case and with-calls case both correct
+- [x] Check 8: handle_model sets override and validates role — override set; invalid role rejected
+- [x] Check 9: start_session in tmp git repo — branch=master, agent_branch=agent/master created and checked out; Windows tempdir cleanup error (git file lock) is expected and unrelated to logic
+- [x] Check 10: handle_end no-tracing path — conn=None skips diary gracefully, prints correct message, no crash
