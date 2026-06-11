@@ -16,7 +16,7 @@ Update this section after each completed prompt.
 | Prompt | Part | Description | Status |
 |--------|------|-------------|--------|
 | [1] | 1.1 | Package scaffolding, config, .env, root discovery | ✅ complete |
-| [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ⬜ not started |
+| [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ✅ complete |
 | [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ⬜ not started |
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ⬜ not started |
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ⬜ not started |
@@ -25,8 +25,8 @@ Update this section after each completed prompt.
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [2]
-**Last completed:** [1]
+**Current prompt:** [3]
+**Last completed:** [2]
 **Last updated by:** Claude
 
 ---
@@ -246,6 +246,16 @@ If you pull and see changes from the other developer, read the updated `CLAUDE.m
 - **Invoke command:** `nephew` (from any project directory after install)
 - **Postgres:** Docker container via `docker compose up -d` (docker-compose.yml created in [8])
 - **API keys in `.env`:** `DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`
+
+---
+
+## Verification — Prompt [2]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — `call_llm`, `Session`, `create_session`, `connect_postgres` all import cleanly
+- [x] Check 3: session creation — UUID v4 generated, `model_overrides == {}`
+- [x] Check 4: token accumulation and cost — totals and `calls_by_role` correct
+- [!] Check 5: call_llm() router call — skipped; no `.env` present at verification time (API keys required)
+- [x] Check 6: Postgres unavailable graceful degradation — returns `None`, prints correct warning
 
 ---
 
