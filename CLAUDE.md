@@ -25,8 +25,8 @@ Update this section after each completed prompt.
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [1]  
-**Last completed:** —  
+**Current prompt:** [1]
+**Last completed:** —
 **Last updated by:** —
 
 ---
@@ -94,7 +94,7 @@ agent/
     header.py       ← print_startup_header(...)
     output.py       ← stream_block3(), spinner(), show_tier1_panel(), ...
     prompts.py      ← prompt_write_file(), prompt_run_command(), show_diff(), ...
-pyproject.toml      ← [project.scripts] agent = "agent.main:main"
+pyproject.toml      ← [project.scripts] nephew = "agent.main:main"
 .agent.json         ← all config (project root)
 .env                ← API keys (project root, gitignored)
 .agentignore        ← file exclusion rules (project root)
@@ -113,27 +113,27 @@ docs/
 
 These interfaces are defined once and must never be redefined. Refer to `docs/BLUEPRINT_Stage1.md` Section 2 for full details.
 
-**`call_llm(role: str, messages: list, **kwargs) -> dict`**  
-Always returns: `{"content": str, "input_tokens": int, "output_tokens": int, "finish_reason": str}`  
+**`call_llm(role: str, messages: list, **kwargs) -> dict`**
+Always returns: `{"content": str, "input_tokens": int, "output_tokens": int, "finish_reason": str}`
 Produced by [2]. Consumed by [4], [5], [6], [7], [8].
 
-**`Session` dataclass**  
-Fields: `session_id: str` (UUID v4, generated once at startup), `model_overrides: dict`  
-Methods: `accumulate_tokens(role, input_tokens, output_tokens)`, `total_cost() -> float`, `get_summary() -> dict`  
+**`Session` dataclass**
+Fields: `session_id: str` (UUID v4, generated once at startup), `model_overrides: dict`
+Methods: `accumulate_tokens(role, input_tokens, output_tokens)`, `total_cost() -> float`, `get_summary() -> dict`
 Produced by [2]. Consumed by all subsequent prompts.
 
-**`step_result_object`**  
-Assembled by host after each Block 3 step via `assemble_step_result()`.  
+**`step_result_object`**
+Assembled by host after each Block 3 step via `assemble_step_result()`.
 Produced by [6]. Consumed by [5] (per-step Pro call), [7] (diary), [8] (stored in traces JSONB).
 
-**`block2_step_instruction`** — 4-field JSON from Pro per step:  
-`{"task_description": str, "files": list, "constraints": str, "expected_output": str}`  
+**`block2_step_instruction`** — 4-field JSON from Pro per step:
+`{"task_description": str, "files": list, "constraints": str, "expected_output": str}`
 Produced by [5]. Consumed by [6].
 
-**`block1_complex_routing_output`** — bare JSON array of file paths.  
+**`block1_complex_routing_output`** — bare JSON array of file paths.
 Produced by [4]. Consumed by [5].
 
-**`get_session_trace_summary(session_id: str, conn) -> dict`**  
+**`get_session_trace_summary(session_id: str, conn) -> dict`**
 Produced by [8]. Consumed by [7] (`/end` handler — stub until [8] provides full implementation).
 
 ---
@@ -243,7 +243,7 @@ If you pull and see changes from the other developer, read the updated `CLAUDE.m
 
 - **OS:** Windows with WSL2 + Docker Desktop
 - **Python manager:** `uv` — install agent with `uv tool install .` (run from agent repo root). To add dependencies to the agent, use `uv add` **only inside the agent repository** — never inside a user project directory.
-- **Invoke command:** `agent` (from any project directory after install)
+- **Invoke command:** `nephew` (from any project directory after install)
 - **Postgres:** Docker container via `docker compose up -d` (docker-compose.yml created in [8])
 - **API keys in `.env`:** `DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`
 
