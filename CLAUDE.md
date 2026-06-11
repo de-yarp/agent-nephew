@@ -22,11 +22,11 @@ Update this section after each completed prompt.
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ✅ complete |
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ✅ complete |
 | [7] | 6   | Session lifecycle: /init, /end, /model, git branch, diary | ✅ complete |
-| [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
+| [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ✅ complete |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [8]
-**Last completed:** [7]
+**Current prompt:** [9]
+**Last completed:** [8]
 **Last updated by:** Claude
 
 ---
@@ -343,3 +343,15 @@ python -c "import agent" # package must import cleanly
 - [x] Check 8: handle_model sets override and validates role — override set; invalid role rejected
 - [x] Check 9: start_session in tmp git repo — branch=master, agent_branch=agent/master created and checked out; Windows tempdir cleanup error (git file lock) is expected and unrelated to logic
 - [x] Check 10: handle_end no-tracing path — conn=None skips diary gracefully, prints correct message, no crash
+
+---
+
+## Verification — Prompt [8]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — `create_traces_table`, `traced_call_llm`, `get_session_trace_summary` import cleanly; `conn` present in all block signatures
+- [x] Check 3: traced_call_llm with conn=None is pass-through — result contains content, input_tokens > 0
+- [x] Check 4: block signatures updated — conn=None default; block1 route_and_dispatch returned SIMPLE with conn=None
+- [x] Check 5: create_traces_table creates table — all 10 required columns present (block, cost, error, id, input_payload, input_tokens, latency_ms, model, output_payload, output_tokens, role, session_id, timestamp)
+- [x] Check 6: traced_call_llm records to traces — 1 row; role=router, tokens=10/21, block=block1
+- [x] Check 7: get_session_trace_summary returns correct structure — total_calls=1, total_input_tokens>0, calls_by_role has router/orchestrator/worker
+- [x] Check 8: get_session_trace_summary returns {} when conn=None

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent.llm import call_llm
+from agent.tracing import traced_call_llm
 from agent.tools.functions import list_files, read_file
 
 if TYPE_CHECKING:
@@ -62,6 +62,7 @@ def _parse_json_with_retry(
     config: dict,
     session: "Session",
     raw: str,
+    conn=None,
 ) -> object:
     cleaned = _strip_fences(raw)
     try:
@@ -81,10 +82,12 @@ def _parse_json_with_retry(
         },
     ]
     router_cfg = config["models"]["router"]
-    retry_result = call_llm(
+    retry_result = traced_call_llm(
         "router",
         retry_messages,
-        config,
+        session=session,
+        conn=conn,
+        config=config,
         max_tokens=router_cfg["max_tokens_files"],
         temperature=router_cfg["temperature"],
     )
@@ -104,6 +107,7 @@ def route_and_dispatch(
     project_root: Path,
     context_contents: str = "",
     diary_sections: str = "",
+    conn=None,
 ) -> dict:
     router_cfg = config["models"]["router"]
 
@@ -112,12 +116,15 @@ def route_and_dispatch(
         {"role": "system", "content": _CALL1_SYSTEM},
         {"role": "user", "content": user_request},
     ]
-    result1 = call_llm(
+    result1 = traced_call_llm(
         "router",
         call1_messages,
-        config,
+        session=session,
+        conn=conn,
+        config=config,
         max_tokens=router_cfg["max_tokens_routing"],
         temperature=router_cfg["temperature"],
+        user_request=user_request,
     )
     session.accumulate_tokens("router", result1["input_tokens"], result1["output_tokens"])
 
@@ -147,16 +154,18 @@ def route_and_dispatch(
         {"role": "user", "content": user_msg},
     ]
 
-    result2 = call_llm(
+    result2 = traced_call_llm(
         "router",
         call2_messages,
-        config,
+        session=session,
+        conn=conn,
+        config=config,
         max_tokens=router_cfg["max_tokens_files"],
         temperature=router_cfg["temperature"],
     )
     session.accumulate_tokens("router", result2["input_tokens"], result2["output_tokens"])
 
-    parsed = _parse_json_with_retry(call2_messages, config, session, result2["content"])
+    parsed = _parse_json_with_retry(call2_messages, config, session, result2["content"], conn=conn)
 
     if routing == "COMPLEX":
         return {
