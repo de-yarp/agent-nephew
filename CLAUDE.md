@@ -15,7 +15,7 @@ Update this section after each completed prompt.
 
 | Prompt | Part | Description | Status |
 |--------|------|-------------|--------|
-| [1] | 1.1 | Package scaffolding, config, .env, root discovery | ⬜ not started |
+| [1] | 1.1 | Package scaffolding, config, .env, root discovery | ✅ complete |
 | [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ⬜ not started |
 | [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ⬜ not started |
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ⬜ not started |
@@ -25,9 +25,9 @@ Update this section after each completed prompt.
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [1]
-**Last completed:** —
-**Last updated by:** —
+**Current prompt:** [2]
+**Last completed:** [1]
+**Last updated by:** Claude
 
 ---
 

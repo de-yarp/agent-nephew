@@ -1,0 +1,48 @@
+{
+  "models": {
+    "router": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "temperature": 0,
+      "max_tokens_routing": 10,
+      "max_tokens_files": 512,
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0
+    },
+    "orchestrator": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "temperature": 0.6,
+      "max_tokens": 8000,
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0
+    },
+    "worker": {
+      "provider": "openrouter",
+      "model": "qwen/qwen3-coder-next",
+      "temperature": 0.2,
+      "max_tokens": 16000,
+      "max_tokens_ceiling": 32000,
+      "cost_per_1k_input": 0.0,
+      "cost_per_1k_output": 0.0
+    }
+  },
+  "tracing": {
+    "enabled": true
+  },
+  "diary": {
+    "sliding_window": 5
+  },
+  "web_search": {
+    "provider": "brave"
+  },
+  "tools": {
+    "fetch_page_max_chars": 6000,
+    "web_search_max_results": 5,
+    "large_file_head_lines": 150,
+    "large_file_tail_lines": 50
+  },
+  "warnings": {
+    "large_plan_steps": 7
+  }
+}
