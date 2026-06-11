@@ -17,7 +17,7 @@ Update this section after each completed prompt.
 |--------|------|-------------|--------|
 | [1] | 1.1 | Package scaffolding, config, .env, root discovery | ✅ complete |
 | [2] | 1.2 | call_llm(), Session, cost tracking, Postgres connect | ✅ complete |
-| [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ⬜ not started |
+| [3] | 2   | Tool system: 7 functions, schemas, dispatcher, .agentignore | ✅ complete |
 | [4] | 3   | Block 1 Router: two Flash calls, SIMPLE/COMPLEX dispatch | ⬜ not started |
 | [5] | 4   | Block 2 Orchestrator: planning + execution loop | ⬜ not started |
 | [6] | 5   | Block 3 Worker: Qwen3 handler, correction loop | ⬜ not started |
@@ -25,8 +25,8 @@ Update this section after each completed prompt.
 | [8] | 7   | Observability: traces table, logging wrapper, docker-compose.yml | ⬜ not started |
 | [9] | 8   | Rich CLI & UX + full main loop assembly | ⬜ not started |
 
-**Current prompt:** [3]
-**Last completed:** [2]
+**Current prompt:** [4]
+**Last completed:** [3]
 **Last updated by:** Claude
 
 ---
@@ -281,3 +281,15 @@ After each prompt, verify by running the specific checks listed in that prompt's
 uv tool install .        # must succeed without errors
 python -c "import agent" # package must import cleanly
 ```
+
+---
+
+## Verification — Prompt [3]
+- [x] Check 1: install — `uv tool install . --force` succeeded
+- [x] Check 2: imports — all 4 modules import cleanly
+- [x] Check 3: agentignore fallback — 11 patterns returned including .git, __pycache__, node_modules
+- [x] Check 4: list_files respects agentignore — .git/ directory entries absent (27 files found); note: prompt check uses `f.startswith('.git')` which also matches `.gitignore` — this is a check bug, not a code bug. `.gitignore` is correctly included.
+- [x] Check 5: read_file truncation — head/tail with notice inserted correctly
+- [x] Check 6: write_file creates dirs — nested path created and content verified
+- [x] Check 7: dispatcher tier enforcement — block3 restriction, tier2 no callback, tier1 auto-execute all correct
+- [x] Check 8: schemas structure — 7 schemas, BLOCK2/BLOCK3 subsets correct
